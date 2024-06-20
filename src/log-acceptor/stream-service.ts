@@ -7,12 +7,17 @@ class StreamService extends Writable {
 		encoding: BufferEncoding,
 		callback: (error?: Error | null) => void,
 	) {
+		const data = JSON.parse(chunk.toString());
+		console.log(data);
+		if (data.action === "block") {
+			this.cork();
+		}
 		console.log(this.chunkCount);
 		this.chunkCount++;
-		console.log(chunk.toString().length);
-		console.log(encoding);
 		callback();
 	}
 }
 
-export const streamService = new StreamService();
+export const streamService = new StreamService({
+	highWaterMark: 512 * 1024 * 1024,
+});
