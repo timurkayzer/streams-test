@@ -7,16 +7,20 @@ export class TransformLogsStream extends Transform {
 	private fileStream: fs.WriteStream;
 	private state: "success" | "fail" = "success";
 	constructor(outputFilePath: string) {
-		super();
+		super({
+			objectMode: true,
+			highWaterMark: 500,
+		});
 		this.pipe(streamService);
 		this.fileStream = fs.createWriteStream(outputFilePath);
 	}
+
 	_transform(
 		chunk: any,
 		encoding: BufferEncoding,
 		callback: TransformCallback,
 	) {
-		console.log(chunk.toString());
+		console.log("transformer");
 		try {
 			const fail = Math.random() * 100 < 10;
 			const resultData = JSON.parse(chunk.toString());
@@ -28,10 +32,10 @@ export class TransformLogsStream extends Transform {
 				if (this.state === "success") {
 					this.state = "fail";
 					console.log("fail");
-					this.cork();
+					this.pause();
 					this.unpipe(streamService);
 					this.pipe(this.fileStream);
-					this.uncork();
+					this.resume();
 				} else {
 					console.log("still fail");
 				}
